@@ -27,10 +27,57 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("User Connected:", socket.id);
+  console.log(
+    "User Connected:",
+    socket.id
+  );
+
+  socket.on(
+  "send-message",
+  ({ roomId, message }) => {
+    console.log(
+      `Message in ${roomId}: ${message}`
+    );
+
+    io.to(roomId).emit(
+      "receive-message",
+      {
+        socketId: socket.id,
+        message,
+        timestamp: new Date(),
+      }
+    );
+  }
+);
+
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+
+    console.log(
+      `${socket.id} joined room ${roomId}`
+    );
+
+    socket.to(roomId).emit(
+      "user-joined",
+      {
+        socketId: socket.id,
+      }
+    );
+  });
+
+  socket.on("leave-room", (roomId) => {
+    socket.leave(roomId);
+
+    console.log(
+      `${socket.id} left room ${roomId}`
+    );
+  });
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected:", socket.id);
+    console.log(
+      "User Disconnected:",
+      socket.id
+    );
   });
 });
 
