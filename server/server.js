@@ -57,6 +57,16 @@ io.on("connection", (socket) => {
       `${socket.id} joined room ${roomId}`
     );
 
+    socket.on(
+  "code-change",
+  ({ roomId, code }) => {
+    socket.to(roomId).emit(
+      "code-update",
+      code
+    );
+  }
+);
+
     socket.to(roomId).emit(
       "user-joined",
       {

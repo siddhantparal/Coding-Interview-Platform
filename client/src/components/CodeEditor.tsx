@@ -2,9 +2,7 @@ import Editor from "@monaco-editor/react";
 
 type Props = {
   code: string;
-  setCode: React.Dispatch<
-    React.SetStateAction<string>
-  >;
+  setCode: (value: string) => void;
 };
 
 function CodeEditor({
