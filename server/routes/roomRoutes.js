@@ -7,6 +7,8 @@ const protect = require("../middleware/authMiddleware");
 const {
   createRoom,
   getMyRooms,
+  updateCode,
+  getRoom,
 } = require("../controllers/roomController");
 
 router.post(
@@ -21,4 +23,17 @@ router.get(
   getMyRooms
 );
 
+router.put(
+  "/code",
+  protect,
+  updateCode
+);
+
+router.get(
+  "/:roomId",
+  protect,
+  getRoom
+);
+
 module.exports = router;
+

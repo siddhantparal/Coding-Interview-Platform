@@ -42,3 +42,58 @@ exports.getMyRooms = async (req, res) => {
     });
   }
 };
+
+exports.updateCode = async (req, res) => {
+  try {
+    const { roomId, code } = req.body;
+
+    const room = await Room.findOneAndUpdate(
+      { roomId },
+      {
+        currentCode: code,
+      },
+      {
+        new: true,
+      }
+    );
+
+    res.json({
+      success: true,
+      room,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.getRoom = async (req, res) => {
+  try {
+    const room = await Room.findOne({
+      roomId: req.params.roomId,
+    });
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      room,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
