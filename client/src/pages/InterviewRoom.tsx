@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
+import { useMemo } from "react";
+import { debounce } from "lodash";
 
 import socket from "../socket";
 import CodeEditor from "../components/CodeEditor";
@@ -32,7 +34,34 @@ function InterviewRoom() {
     };
   }, [roomId]);
 
-const handleCodeChange = async (
+const saveCode = useMemo(
+  () =>
+    debounce(
+      async (
+        roomId: string,
+        code: string
+      ) => {
+        try {
+          await api.put(
+            "/rooms/code",
+            {
+              roomId,
+              code,
+            }
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      },
+      1000
+    ),
+  []
+);
+
+const [language, setLanguage] =
+  useState("javascript");
+
+const handleCodeChange = (
   newCode: string
 ) => {
   setCode(newCode);
@@ -45,20 +74,17 @@ const handleCodeChange = async (
     }
   );
 
-  try {
-    await api.put(
-      "/rooms/code",
-      {
-        roomId,
-        code: newCode,
-      }
-    );
-  } catch (error) {
-    console.error(error);
-  }
+  
+  if (roomId) {
+  saveCode(
+    roomId,
+    newCode
+  );
+}
+
 };
 
-  const loadRoom = async () => {
+const loadRoom = async () => {
   try {
     const response =
       await api.get(
@@ -69,29 +95,89 @@ const handleCodeChange = async (
       response.data.room.currentCode ||
       "// Start coding..."
     );
+    setLanguage(
+      response.data.room.language ||
+      "javascript"
+    );
+    
   } catch (error) {
     console.error(error);
   }
 };
 
-  return (
-    <div>
-      <div
-        style={{
-          padding: "10px",
-          borderBottom:
-            "1px solid #ccc",
+useEffect(() => {
+  return () => {
+    saveCode.cancel();
+  };
+}, [saveCode]);
+
+return (
+  <div>
+    <div
+      style={{
+        padding: "10px",
+        borderBottom: "1px solid #ccc",
+      }}
+    >
+      Room: {roomId}
+    </div>
+
+    <div style={{ padding: "10px" }}>
+      <select
+        value={language}
+        onChange={async (e) => {
+          const selectedLanguage =
+            e.target.value;
+
+          setLanguage(selectedLanguage);
+
+          try {
+            await api.put(
+              "/rooms/language",
+              {
+                roomId,
+                language:
+                  selectedLanguage,
+              }
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }}
       >
-        Room: {roomId}
-      </div>
+        <option value="javascript">
+          JavaScript
+        </option>
 
-      <CodeEditor
-        code={code}
-        setCode={handleCodeChange}
-      />
+        <option value="python">
+          Python
+        </option>
+
+        <option value="java">
+          Java
+        </option>
+
+        <option value="cpp">
+          C++
+        </option>
+
+        <option value="c">
+          C
+        </option>
+
+        <option value="go">
+          Go
+        </option>
+      </select>
     </div>
-  );
+
+    <CodeEditor
+      code={code}
+      setCode={handleCodeChange}
+      language={language}
+    />
+  </div>
+);
 }
 
 export default InterviewRoom;

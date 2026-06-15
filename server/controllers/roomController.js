@@ -46,6 +46,7 @@ exports.getMyRooms = async (req, res) => {
 exports.updateCode = async (req, res) => {
   try {
     const { roomId, code } = req.body;
+   
 
     const room = await Room.findOneAndUpdate(
       { roomId },
@@ -83,6 +84,37 @@ exports.getRoom = async (req, res) => {
         message: "Room not found",
       });
     }
+
+    res.json({
+      success: true,
+      room,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.updateLanguage = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      roomId,
+      language,
+    } = req.body;
+
+    const room =
+      await Room.findOneAndUpdate(
+        { roomId },
+        { language },
+        { new: true }
+      );
 
     res.json({
       success: true,

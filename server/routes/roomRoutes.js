@@ -9,6 +9,7 @@ const {
   getMyRooms,
   updateCode,
   getRoom,
+  updateLanguage,
 } = require("../controllers/roomController");
 
 router.post(
@@ -33,6 +34,12 @@ router.get(
   "/:roomId",
   protect,
   getRoom
+);
+
+router.put(
+  "/language",
+  protect,
+  updateLanguage
 );
 
 module.exports = router;
