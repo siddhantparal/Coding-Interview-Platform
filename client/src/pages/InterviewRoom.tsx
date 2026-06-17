@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { debounce } from "lodash";
 
@@ -12,12 +12,22 @@ function InterviewRoom() {
   const [code, setCode] = useState(
     "// Start coding..."
   );
+  const [messages, setMessages] =
+  useState<any[]>([]);
+
+  const [messageInput, setMessageInput] =
+  useState("");
 
   const [language, setLanguage] =
     useState("javascript");
 
   const [output, setOutput] =
     useState("");
+
+  const chatEndRef =
+  useRef<HTMLDivElement>(
+    null
+  );
 
   const saveCode = useMemo(
     () =>
@@ -44,6 +54,12 @@ function InterviewRoom() {
   );
 
   useEffect(() => {
+  chatEndRef.current?.scrollIntoView({
+    behavior: "smooth",
+  });
+}, [messages]);
+
+  useEffect(() => {
     if (!roomId) return;
 
     loadRoom();
@@ -56,10 +72,22 @@ function InterviewRoom() {
         setCode(incomingCode);
       }
     );
+    socket.on(
+      "receive-message",
+      (data) => {
+      setMessages((prev) => [
+      ...prev,
+      data,
+    ]);
+  }
+);
+
+
 
     return () => {
       socket.emit("leave-room", roomId);
       socket.off("code-update");
+      socket.off("receive-message");
       saveCode.cancel();
     };
   }, [roomId, saveCode]);
@@ -105,6 +133,27 @@ function InterviewRoom() {
       );
     }
   };
+
+  const sendMessage = () => {
+  if (
+    !messageInput.trim()
+  )
+    return;
+
+  socket.emit(
+    "send-message",
+    {
+      roomId,
+      message: messageInput,
+      sender:
+      localStorage.getItem(
+        "userEmail"
+      )
+    }
+  );
+
+  setMessageInput("");
+};
 
   const runCode = async () => {
     if (language !== "python") {
@@ -236,6 +285,70 @@ function InterviewRoom() {
         <pre>
           {output}
         </pre>
+      </div>
+
+      <div
+        style={{
+        padding: "10px",
+        borderTop:
+        "1px solid #ccc",
+  }}
+>
+  <h3>Chat</h3>
+
+  <div
+    style={{
+      height: "200px",
+      overflowY: "auto",
+      border:
+        "1px solid #ccc",
+      padding: "10px",
+      marginBottom: "10px",
+    }}
+  >
+    {messages.map(
+      (msg, index) => (
+        <div
+  key={index}
+  style={{
+    marginBottom: "10px",
+  }}
+>
+  <div
+    style={{
+      fontSize: "12px",
+      color: "gray",
+    }}
+  >
+    [{msg.timestamp}] {msg.sender}
+  </div>
+
+  <div>
+    {msg.message}
+  </div>
+</div>
+      )
+    )}
+
+    <div ref={chatEndRef} />
+  </div>
+
+  <input
+    type="text"
+    value={messageInput}
+    onChange={(e) =>
+      setMessageInput(
+        e.target.value
+      )
+    }
+    placeholder="Type message..."
+  />
+
+        <button
+          onClick={sendMessage}
+  >
+          Send
+        </button>
       </div>
     </div>
   );

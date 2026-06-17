@@ -27,6 +27,10 @@ function Login() {
         "token",
         response.data.token
       );
+      localStorage.setItem(
+        "userEmail",
+        email
+      );
 
       navigate("/dashboard");
     } catch (error) {

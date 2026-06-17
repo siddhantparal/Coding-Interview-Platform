@@ -34,62 +34,43 @@ io.on("connection", (socket) => {
   );
 
   socket.on(
-  "send-message",
-  ({ roomId, message }) => {
-    console.log(
-      `Message in ${roomId}: ${message}`
-    );
+    "join-room",
+    (roomId) => {
+      socket.join(roomId);
+    }
+  );
 
-    io.to(roomId).emit(
-      "receive-message",
-      {
-        socketId: socket.id,
-        message,
-        timestamp: new Date(),
-      }
-    );
-  }
-);
+  socket.on(
+    "leave-room",
+    (roomId) => {
+      socket.leave(roomId);
+    }
+  );
 
-  socket.on("join-room", (roomId) => {
-    socket.join(roomId);
+  socket.on(
+    "send-message",
+    ({ roomId, message, sender  }) => {
+      io.to(roomId).emit(
+        "receive-message",
+        {
+          message,
+          sender,
+          timestamp:
+          new Date().toLocaleTimeString(),
+        }
+      );
+    }
+  );
 
-    console.log(
-      `${socket.id} joined room ${roomId}`
-    );
-
-    socket.on(
-  "code-change",
-  ({ roomId, code }) => {
-    socket.to(roomId).emit(
-      "code-update",
-      code
-    );
-  }
-);
-
-    socket.to(roomId).emit(
-      "user-joined",
-      {
-        socketId: socket.id,
-      }
-    );
-  });
-
-  socket.on("leave-room", (roomId) => {
-    socket.leave(roomId);
-
-    console.log(
-      `${socket.id} left room ${roomId}`
-    );
-  });
-
-  socket.on("disconnect", () => {
-    console.log(
-      "User Disconnected:",
-      socket.id
-    );
-  });
+  socket.on(
+    "disconnect",
+    () => {
+      console.log(
+        "User Disconnected:",
+        socket.id
+      );
+    }
+  );
 });
 
 app.use(cors());
