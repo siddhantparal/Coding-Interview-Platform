@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const testRoutes = require("./routes/testRoutes");
 const roomRoutes = require("./routes/roomRoutes");
+const executeRoutes = require("./routes/executeRoutes");
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -98,6 +99,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/execute", executeRoutes);
 app.get("/", (req, res) => {
   res.send("Interview Platform API Running");
 });
